@@ -1,3 +1,4 @@
+// Datos base del menú: categorías y platillos disponibles
 const data = {
   categorias: [
     {
@@ -18,16 +19,24 @@ const data = {
   ]
 };
 
+// Referencias a elementos del DOM
 const menuContainer = document.getElementById('menu');
 const platilloSeleccionadoElem = document.getElementById('platilloSeleccionado');
 const comentarioInput = document.getElementById('comentario');
 const confirmarPedidoBtn = document.getElementById('confirmarPedido');
+const listaPedidos = document.getElementById('lista-pedidos');
+const enviarCocinaBtn = document.getElementById('enviarCocina');
 
 // Instancia del modal de Bootstrap
 const pedidoModal = new bootstrap.Modal(document.getElementById('pedidoModal'));
 
-let platilloActual = null; // Guardará el platillo que se selecciona
+// Estado actual del platillo seleccionado
+let platilloActual = null;
 
+// Lista de pedidos confirmados
+const pedidosConfirmados = [];
+
+// Renderizar el menú dinámicamente a partir de los datos
 function mostrarMenu() {
   menuContainer.innerHTML = '';
 
@@ -52,11 +61,11 @@ function mostrarMenu() {
         </div>
       `;
 
-      // Evento para abrir el modal
+      // Asociar el platillo al modal de confirmación
       platilloCard.querySelector('button').addEventListener('click', () => {
         platilloActual = platillo;
         platilloSeleccionadoElem.textContent = `${platillo.nombre} - $${platillo.precio}`;
-        comentarioInput.value = ''; // Limpiamos el campo
+        comentarioInput.value = '';
         pedidoModal.show();
       });
 
@@ -65,15 +74,55 @@ function mostrarMenu() {
   });
 }
 
-// Evento para confirmar pedido
+// Confirmar el pedido y agregarlo a la lista
 confirmarPedidoBtn.addEventListener('click', () => {
   const comentario = comentarioInput.value.trim();
-  console.log("Pedido confirmado:", {
-    platillo: platilloActual.nombre,
+  const pedido = {
+    nombre: platilloActual.nombre,
     precio: platilloActual.precio,
     comentario: comentario || "Sin comentarios"
+  };
+
+  pedidosConfirmados.push(pedido);
+
+  const pedidoCard = document.createElement('div');
+  pedidoCard.classList.add('card', 'mb-3', 'shadow-sm');
+
+  pedidoCard.innerHTML = `
+    <div class="card-body">
+      <h5 class="card-title">${pedido.nombre} - $${pedido.precio}</h5>
+      <p class="card-text"><strong>Comentario:</strong> ${pedido.comentario}</p>
+      <button class="btn btn-outline-danger btn-sm">Eliminar</button>
+    </div>
+  `;
+
+  // Eliminar el pedido de la lista visual y del arreglo
+  pedidoCard.querySelector('button').addEventListener('click', () => {
+    listaPedidos.removeChild(pedidoCard);
+    const index = pedidosConfirmados.indexOf(pedido);
+    if (index !== -1) pedidosConfirmados.splice(index, 1);
   });
+
+  listaPedidos.appendChild(pedidoCard);
   pedidoModal.hide();
 });
 
+// Enviar todos los pedidos a cocina (simulado)
+enviarCocinaBtn.addEventListener('click', () => {
+  if (pedidosConfirmados.length === 0) {
+    alert("No hay pedidos para enviar.");
+    return;
+  }
+
+  console.log("Pedidos enviados a cocina:");
+  pedidosConfirmados.forEach(pedido => {
+    console.log(`- ${pedido.nombre} ($${pedido.precio}) | Comentario: ${pedido.comentario}`);
+  });
+
+  alert("Pedidos enviados a cocina ✅");
+  listaPedidos.innerHTML = '';
+  pedidosConfirmados.length = 0;
+});
+
+// Inicializar la vista del menú
 mostrarMenu();
