@@ -8,74 +8,103 @@
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Estilos personalizados del sistema -->
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
 
-  <!-- Encabezado principal -->
   <header class="bg-dark text-white text-center py-3">
     <h1 class="mb-0">☕ Wake Up - Sistema de Pedidos</h1>
   </header>
 
-  <!-- Sección principal -->
   <main class="container my-4">
     <div class="row g-4">
 
-      <!-- Vista para toma de pedidos -->
+      <!-- Vista mesera -->
       <section id="vista-mesera" class="col-md-6">
         <div class="card shadow-sm">
           <div class="card-body">
             <h2 class="card-title mb-4">Menú</h2>
-
-            <!-- Contenedor dinámico del menú -->
             <div id="menu" class="row g-3"></div>
 
-            <!-- Lista de pedidos confirmados -->
             <h3 class="mt-4">
               Pedidos confirmados
               <span id="contadorPedidos" class="badge bg-secondary">0</span>
             </h3>
             <div id="lista-pedidos" class="mt-3"></div>
 
-            <!-- Acción para enviar pedidos a cocina -->
             <button id="enviarCocina" class="btn btn-success mt-3">Enviar todos los pedidos a cocina</button>
           </div>
         </div>
       </section>
 
-      <!-- Vista administrativa -->
-      <h2 class="card-title mb-4">Panel de Administración</h2>
+      <!-- Vista administración -->
+      <section id="vista-admin" class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title mb-4">Panel de Administración</h2>
 
-<!-- Formulario para agregar categorías -->
-<form id="form-categoria" class="mb-4">
-  <div class="mb-3">
-    <label for="nombreCategoria" class="form-label">Nombre de la nueva categoría</label>
-    <input type="text" id="nombreCategoria" class="form-control" placeholder="Ej. Postres" required>
-  </div>
-  <button type="submit" class="btn btn-outline-primary">Agregar categoría</button>
-</form>
+            <!-- Formulario categoría -->
+            <form id="form-categoria" class="mb-4">
+              <div class="mb-3">
+                <label for="nombreCategoria" class="form-label">Nombre de la nueva categoría</label>
+                <input type="text" id="nombreCategoria" class="form-control" required>
+              </div>
+              <button type="submit" class="btn btn-outline-primary">Agregar categoría</button>
+            </form>
 
-<!-- Mensaje de estado -->
-<div id="estadoAdmin" class="text-muted small"></div>
+            <!-- Formulario platillo -->
+            <form id="form-platillo">
+              <h5 class="mt-4">Agregar nuevo platillo</h5>
+              <div class="mb-3">
+                <label for="categoriaPlatillo" class="form-label">Categoría</label>
+                <select id="categoriaPlatillo" class="form-select" required></select>
+              </div>
+              <div class="mb-3">
+                <label for="nombrePlatillo" class="form-label">Nombre</label>
+                <input type="text" id="nombrePlatillo" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label for="descripcionPlatillo" class="form-label">Descripción</label>
+                <input type="text" id="descripcionPlatillo" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label for="precioPlatillo" class="form-label">Precio</label>
+                <input type="number" id="precioPlatillo" class="form-control" min="0" required>
+              </div>
+              <button type="submit" class="btn btn-outline-success">Agregar platillo</button>
+            </form>
+
+            <!-- Lista editable de categorías -->
+            <h5 class="mt-5">Categorías existentes</h5>
+            <ul id="listaCategorias" class="list-group"></ul>
+
+             <!-- Lista editable de platillos -->
+            <h5 class="mt-5">Platillos existentes</h5>
+            <ul id="listaPlatillos" class="list-group"></ul>
 
 
-  <!-- Modal de confirmación de pedido con campo de comentario -->
+            <div id="estadoAdmin" class="text-muted small mt-3"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modal pedido -->
   <div class="modal fade" id="pedidoModal" tabindex="-1" aria-labelledby="pedidoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="pedidoModalLabel">Agregar comentario</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <p id="platilloSeleccionado" class="fw-bold"></p>
           <div class="mb-3">
             <label for="comentario" class="form-label">Comentario especial</label>
-            <textarea id="comentario" class="form-control" rows="3"
-              placeholder="Ej. Sin azúcar, extra crema..."></textarea>
+            <textarea id="comentario" class="form-control" rows="3"></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -86,12 +115,69 @@
     </div>
   </div>
 
+  <!-- Modal editar categoría -->
+  <div class="modal fade" id="modalEditarCategoria" tabindex="-1" aria-labelledby="modalEditarCategoriaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="formEditarCategoria">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEditarCategoriaLabel">Editar categoría</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="idCategoriaEditar">
+            <div class="mb-3">
+              <label for="nombreCategoriaEditar" class="form-label">Nuevo nombre</label>
+              <input type="text" id="nombreCategoriaEditar" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar platillo -->
+<div class="modal fade" id="modalEditarPlatillo" tabindex="-1" aria-labelledby="modalEditarPlatilloLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formEditarPlatillo">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditarPlatilloLabel">Editar platillo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="idCategoriaPlatilloEditar">
+          <input type="hidden" id="idPlatilloEditar">
+          <div class="mb-3">
+            <label for="nombrePlatilloEditar" class="form-label">Nombre</label>
+            <input type="text" id="nombrePlatilloEditar" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label for="descripcionPlatilloEditar" class="form-label">Descripción</label>
+            <input type="text" id="descripcionPlatilloEditar" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label for="precioPlatilloEditar" class="form-label">Precio</label>
+            <input type="number" id="precioPlatilloEditar" class="form-control" min="0" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Lógica principal del sistema -->
   <script src="js/app.js"></script>
 
 </body>
-
 </html>

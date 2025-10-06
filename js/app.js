@@ -1,4 +1,4 @@
-// Datos base del menú: categorías y platillos disponibles
+// Datos base del menú
 const data = {
   categorias: [
     {
@@ -19,7 +19,7 @@ const data = {
   ]
 };
 
-// Referencias a elementos del DOM
+// Referencias generales
 const menuContainer = document.getElementById('menu');
 const platilloSeleccionadoElem = document.getElementById('platilloSeleccionado');
 const comentarioInput = document.getElementById('comentario');
@@ -28,20 +28,14 @@ const listaPedidos = document.getElementById('lista-pedidos');
 const enviarCocinaBtn = document.getElementById('enviarCocina');
 const contadorPedidos = document.getElementById('contadorPedidos');
 
-// Instancia del modal de Bootstrap
+// Modal de pedido
 const pedidoModal = new bootstrap.Modal(document.getElementById('pedidoModal'));
-
-// Estado actual del platillo seleccionado
 let platilloActual = null;
-
-// Lista de pedidos confirmados
 const pedidosConfirmados = [];
 
-// Renderiza el menú dinámicamente a partir de los datos
+// Renderiza el menú
 function mostrarMenu() {
   menuContainer.innerHTML = '';
-
-  // Ordena las categorías alfabéticamente por nombre
   data.categorias.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   data.categorias.forEach(categoria => {
@@ -53,7 +47,6 @@ function mostrarMenu() {
     categoria.platillos.forEach(platillo => {
       const platilloCard = document.createElement('div');
       platilloCard.classList.add('col-12', 'col-sm-6');
-
       platilloCard.innerHTML = `
         <div class="card h-100 shadow-sm">
           <div class="card-body">
@@ -64,25 +57,21 @@ function mostrarMenu() {
           </div>
         </div>
       `;
-
-      // Asocia el platillo al modal de confirmación
       platilloCard.querySelector('button').addEventListener('click', () => {
         platilloActual = platillo;
         platilloSeleccionadoElem.textContent = `${platillo.nombre} - $${platillo.precio}`;
         comentarioInput.value = '';
         pedidoModal.show();
       });
-
       menuContainer.appendChild(platilloCard);
     });
   });
 }
 
-// Agrega un pedido visualmente y lo vincula al botón de eliminación
+// Agrega pedido visual
 function agregarPedidoVisual(pedido) {
   const pedidoCard = document.createElement('div');
   pedidoCard.classList.add('card', 'mb-3', 'shadow-sm');
-
   pedidoCard.innerHTML = `
     <div class="card-body">
       <h5 class="card-title">${pedido.nombre} - $${pedido.precio}</h5>
@@ -91,7 +80,6 @@ function agregarPedidoVisual(pedido) {
       <button class="btn btn-outline-danger btn-sm">Eliminar</button>
     </div>
   `;
-
   pedidoCard.querySelector('button').addEventListener('click', () => {
     listaPedidos.removeChild(pedidoCard);
     const index = pedidosConfirmados.indexOf(pedido);
@@ -99,11 +87,10 @@ function agregarPedidoVisual(pedido) {
     localStorage.setItem('pedidosConfirmados', JSON.stringify(pedidosConfirmados));
     actualizarContador();
   });
-
   listaPedidos.appendChild(pedidoCard);
 }
 
-// Confirma el pedido y lo guarda en localStorage
+// Confirmar pedido
 confirmarPedidoBtn.addEventListener('click', () => {
   const comentario = comentarioInput.value.trim();
   const pedido = {
@@ -112,7 +99,6 @@ confirmarPedidoBtn.addEventListener('click', () => {
     comentario: comentario || "Sin comentarios",
     hora: new Date().toLocaleString()
   };
-
   pedidosConfirmados.push(pedido);
   localStorage.setItem('pedidosConfirmados', JSON.stringify(pedidosConfirmados));
   agregarPedidoVisual(pedido);
@@ -120,18 +106,16 @@ confirmarPedidoBtn.addEventListener('click', () => {
   actualizarContador();
 });
 
-// Envía todos los pedidos a cocina (simulado)
+// Enviar pedidos
 enviarCocinaBtn.addEventListener('click', () => {
   if (pedidosConfirmados.length === 0) {
     alert("No hay pedidos para enviar.");
     return;
   }
-
   console.log("Pedidos enviados a cocina:");
   pedidosConfirmados.forEach(pedido => {
     console.log(`- ${pedido.nombre} ($${pedido.precio}) | Comentario: ${pedido.comentario}`);
   });
-
   alert("Pedidos enviados a cocina ✅");
   listaPedidos.innerHTML = '';
   pedidosConfirmados.length = 0;
@@ -139,7 +123,7 @@ enviarCocinaBtn.addEventListener('click', () => {
   actualizarContador();
 });
 
-// Recupera pedidos guardados al cargar la página
+// Cargar pedidos guardados
 function cargarPedidosGuardados() {
   const guardados = JSON.parse(localStorage.getItem('pedidosConfirmados')) || [];
   guardados.forEach(pedido => {
@@ -149,51 +133,192 @@ function cargarPedidosGuardados() {
   actualizarContador();
 }
 
-// Actualiza el contador visual de pedidos confirmados
+// Contador visual
 function actualizarContador() {
   contadorPedidos.textContent = pedidosConfirmados.length;
 }
 
-// Recupera categorías guardadas desde localStorage
+// Cargar categorías guardadas
 function cargarCategoriasGuardadas() {
   const guardadas = JSON.parse(localStorage.getItem('categorias'));
   if (guardadas) data.categorias = guardadas;
 }
 
-// Referencias del formulario de categoría
+// Formulario categoría
 const formCategoria = document.getElementById('form-categoria');
 const nombreCategoriaInput = document.getElementById('nombreCategoria');
 const estadoAdmin = document.getElementById('estadoAdmin');
 
-// Maneja el envío del formulario para agregar una nueva categoría
 formCategoria.addEventListener('submit', (e) => {
   e.preventDefault();
-
   const nombre = nombreCategoriaInput.value.trim();
   if (!nombre) return;
-
-  // Verifica si la categoría ya existe (ignorando mayúsculas/minúsculas)
   const existe = data.categorias.some(cat => cat.nombre.toLowerCase() === nombre.toLowerCase());
   if (existe) {
     estadoAdmin.textContent = `La categoría "${nombre}" ya existe.`;
     return;
   }
-
-  const nuevaCategoria = {
-    id: Date.now(),
-    nombre,
-    platillos: []
-  };
-
+  const nuevaCategoria = { id: Date.now(), nombre, platillos: [] };
   data.categorias.push(nuevaCategoria);
   localStorage.setItem('categorias', JSON.stringify(data.categorias));
   mostrarMenu();
+  actualizarSelectCategorias();
+  mostrarListaCategorias();
+  mostrarListaPlatillos();
 
   estadoAdmin.textContent = `Categoría "${nombre}" agregada correctamente.`;
   nombreCategoriaInput.value = '';
 });
 
-// Inicializa la vista
+// Formulario platillo
+const formPlatillo = document.getElementById('form-platillo');
+const categoriaPlatilloSelect = document.getElementById('categoriaPlatillo');
+const nombrePlatilloInput = document.getElementById('nombrePlatillo');
+const descripcionPlatilloInput = document.getElementById('descripcionPlatillo');
+const precioPlatilloInput = document.getElementById('precioPlatillo');
+
+function actualizarSelectCategorias() {
+  categoriaPlatilloSelect.innerHTML = '';
+  data.categorias.forEach(categoria => {
+    const option = document.createElement('option');
+    option.value = categoria.id;
+    option.textContent = categoria.nombre;
+    categoriaPlatilloSelect.appendChild(option);
+  });
+}
+
+formPlatillo.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const categoriaId = parseInt(categoriaPlatilloSelect.value);
+  const nombre = nombrePlatilloInput.value.trim();
+  const descripcion = descripcionPlatilloInput.value.trim();
+  const precio = parseFloat(precioPlatilloInput.value);
+  if (!nombre || isNaN(precio)) return;
+  const categoria = data.categorias.find(cat => cat.id === categoriaId);
+  if (!categoria) return;
+  const nuevoPlatillo = { id: Date.now(), nombre, descripcion, precio };
+  categoria.platillos.push(nuevoPlatillo);
+  localStorage.setItem('categorias', JSON.stringify(data.categorias));
+  mostrarMenu();
+  actualizarSelectCategorias();
+  mostrarListaPlatillos();
+
+  nombrePlatilloInput.value = '';
+  descripcionPlatilloInput.value = '';
+  precioPlatilloInput.value = '';
+});
+// Modal edición de categoría
+const modalEditarCategoria = new bootstrap.Modal(document.getElementById('modalEditarCategoria'));
+const formEditarCategoria = document.getElementById('formEditarCategoria');
+const idCategoriaEditar = document.getElementById('idCategoriaEditar');
+const nombreCategoriaEditar = document.getElementById('nombreCategoriaEditar');
+const listaCategorias = document.getElementById('listaCategorias');
+
+// Renderiza la lista de categorías con botón de edición
+function mostrarListaCategorias() {
+  listaCategorias.innerHTML = '';
+  data.categorias.forEach(categoria => {
+    const item = document.createElement('li');
+    item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+    item.innerHTML = `
+      <span>${categoria.nombre}</span>
+      <button class="btn btn-sm btn-outline-secondary">Editar</button>
+    `;
+    item.querySelector('button').addEventListener('click', () => {
+      idCategoriaEditar.value = categoria.id;
+      nombreCategoriaEditar.value = categoria.nombre;
+      modalEditarCategoria.show();
+    });
+    listaCategorias.appendChild(item);
+  });
+}
+
+// Maneja el envío del formulario de edición de categoría
+formEditarCategoria.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const id = parseInt(idCategoriaEditar.value);
+  const nuevoNombre = nombreCategoriaEditar.value.trim();
+  if (!nuevoNombre) return;
+
+  const categoria = data.categorias.find(cat => cat.id === id);
+  if (!categoria) return;
+
+  categoria.nombre = nuevoNombre;
+  localStorage.setItem('categorias', JSON.stringify(data.categorias));
+  modalEditarCategoria.hide();
+  mostrarMenu();
+  actualizarSelectCategorias();
+  mostrarListaCategorias();
+  mostrarListaPlatillos();
+});
+
+// Modal edición de platillo
+const modalEditarPlatillo = new bootstrap.Modal(document.getElementById('modalEditarPlatillo'));
+const formEditarPlatillo = document.getElementById('formEditarPlatillo');
+const idCategoriaPlatilloEditar = document.getElementById('idCategoriaPlatilloEditar');
+const idPlatilloEditar = document.getElementById('idPlatilloEditar');
+const nombrePlatilloEditar = document.getElementById('nombrePlatilloEditar');
+const descripcionPlatilloEditar = document.getElementById('descripcionPlatilloEditar');
+const precioPlatilloEditar = document.getElementById('precioPlatilloEditar');
+const listaPlatillos = document.getElementById('listaPlatillos');
+
+// Renderiza la lista de platillos con botón de edición
+function mostrarListaPlatillos() {
+  listaPlatillos.innerHTML = '';
+  data.categorias.forEach(categoria => {
+    categoria.platillos.forEach(platillo => {
+      const item = document.createElement('li');
+      item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+      item.innerHTML = `
+        <span><strong>${platillo.nombre}</strong> (${categoria.nombre}) - $${platillo.precio}</span>
+        <button class="btn btn-sm btn-outline-secondary">Editar</button>
+      `;
+      item.querySelector('button').addEventListener('click', () => {
+        idCategoriaPlatilloEditar.value = categoria.id;
+        idPlatilloEditar.value = platillo.id;
+        nombrePlatilloEditar.value = platillo.nombre;
+        descripcionPlatilloEditar.value = platillo.descripcion;
+        precioPlatilloEditar.value = platillo.precio;
+        modalEditarPlatillo.show();
+      });
+      listaPlatillos.appendChild(item);
+    });
+  });
+}
+
+// Maneja el envío del formulario de edición de platillo
+formEditarPlatillo.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const idCat = parseInt(idCategoriaPlatilloEditar.value);
+  const idPlat = parseInt(idPlatilloEditar.value);
+  const nombre = nombrePlatilloEditar.value.trim();
+  const descripcion = descripcionPlatilloEditar.value.trim();
+  const precio = parseFloat(precioPlatilloEditar.value);
+
+  if (!nombre || isNaN(precio)) return;
+
+  const categoria = data.categorias.find(cat => cat.id === idCat);
+  if (!categoria) return;
+
+  const platillo = categoria.platillos.find(p => p.id === idPlat);
+  if (!platillo) return;
+
+  platillo.nombre = nombre;
+  platillo.descripcion = descripcion;
+  platillo.precio = precio;
+
+  localStorage.setItem('categorias', JSON.stringify(data.categorias));
+  modalEditarPlatillo.hide();
+  mostrarMenu();
+  mostrarListaPlatillos();
+});
+
+// Inicialización final
 cargarCategoriasGuardadas();
+actualizarSelectCategorias();
 mostrarMenu();
 cargarPedidosGuardados();
+mostrarListaCategorias();
+mostrarListaPlatillos();
