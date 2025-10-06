@@ -26,6 +26,7 @@ const comentarioInput = document.getElementById('comentario');
 const confirmarPedidoBtn = document.getElementById('confirmarPedido');
 const listaPedidos = document.getElementById('lista-pedidos');
 const enviarCocinaBtn = document.getElementById('enviarCocina');
+const contadorPedidos = document.getElementById('contadorPedidos');
 
 // Instancia del modal de Bootstrap
 const pedidoModal = new bootstrap.Modal(document.getElementById('pedidoModal'));
@@ -36,7 +37,7 @@ let platilloActual = null;
 // Lista de pedidos confirmados
 const pedidosConfirmados = [];
 
-// Renderizar el menú dinámicamente a partir de los datos
+// Renderiza el menú dinámicamente a partir de los datos
 function mostrarMenu() {
   menuContainer.innerHTML = '';
 
@@ -61,7 +62,7 @@ function mostrarMenu() {
         </div>
       `;
 
-      // Asociar el platillo al modal de confirmación
+      // Asocia el platillo al modal de confirmación
       platilloCard.querySelector('button').addEventListener('click', () => {
         platilloActual = platillo;
         platilloSeleccionadoElem.textContent = `${platillo.nombre} - $${platillo.precio}`;
@@ -74,17 +75,8 @@ function mostrarMenu() {
   });
 }
 
-// Confirmar el pedido y agregarlo a la lista
-confirmarPedidoBtn.addEventListener('click', () => {
-  const comentario = comentarioInput.value.trim();
-  const pedido = {
-    nombre: platilloActual.nombre,
-    precio: platilloActual.precio,
-    comentario: comentario || "Sin comentarios"
-  };
-
-  pedidosConfirmados.push(pedido);
-
+// Agrega un pedido visualmente y lo vincula al botón de eliminación
+function agregarPedidoVisual(pedido) {
   const pedidoCard = document.createElement('div');
   pedidoCard.classList.add('card', 'mb-3', 'shadow-sm');
 
@@ -92,22 +84,40 @@ confirmarPedidoBtn.addEventListener('click', () => {
     <div class="card-body">
       <h5 class="card-title">${pedido.nombre} - $${pedido.precio}</h5>
       <p class="card-text"><strong>Comentario:</strong> ${pedido.comentario}</p>
+      <p class="card-text text-muted">🕒 ${pedido.hora}</p>
       <button class="btn btn-outline-danger btn-sm">Eliminar</button>
     </div>
   `;
 
-  // Eliminar el pedido de la lista visual y del arreglo
   pedidoCard.querySelector('button').addEventListener('click', () => {
     listaPedidos.removeChild(pedidoCard);
     const index = pedidosConfirmados.indexOf(pedido);
     if (index !== -1) pedidosConfirmados.splice(index, 1);
+    localStorage.setItem('pedidosConfirmados', JSON.stringify(pedidosConfirmados));
+    actualizarContador();
   });
 
   listaPedidos.appendChild(pedidoCard);
+}
+
+// Confirma el pedido y lo guarda en localStorage
+confirmarPedidoBtn.addEventListener('click', () => {
+  const comentario = comentarioInput.value.trim();
+  const pedido = {
+    nombre: platilloActual.nombre,
+    precio: platilloActual.precio,
+    comentario: comentario || "Sin comentarios",
+    hora: new Date().toLocaleString()
+  };
+
+  pedidosConfirmados.push(pedido);
+  localStorage.setItem('pedidosConfirmados', JSON.stringify(pedidosConfirmados));
+  agregarPedidoVisual(pedido);
   pedidoModal.hide();
+  actualizarContador();
 });
 
-// Enviar todos los pedidos a cocina (simulado)
+// Envía todos los pedidos a cocina (simulado)
 enviarCocinaBtn.addEventListener('click', () => {
   if (pedidosConfirmados.length === 0) {
     alert("No hay pedidos para enviar.");
@@ -122,7 +132,25 @@ enviarCocinaBtn.addEventListener('click', () => {
   alert("Pedidos enviados a cocina ✅");
   listaPedidos.innerHTML = '';
   pedidosConfirmados.length = 0;
+  localStorage.removeItem('pedidosConfirmados');
+  actualizarContador();
 });
 
-// Inicializar la vista del menú
+// Recupera pedidos guardados al cargar la página
+function cargarPedidosGuardados() {
+  const guardados = JSON.parse(localStorage.getItem('pedidosConfirmados')) || [];
+  guardados.forEach(pedido => {
+    agregarPedidoVisual(pedido);
+    pedidosConfirmados.push(pedido);
+  });
+  actualizarContador();
+}
+
+// Actualiza el contador visual de pedidos confirmados
+function actualizarContador() {
+  contadorPedidos.textContent = pedidosConfirmados.length;
+}
+
+// Inicializa la vista
 mostrarMenu();
+cargarPedidosGuardados();
