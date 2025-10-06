@@ -41,6 +41,9 @@ const pedidosConfirmados = [];
 function mostrarMenu() {
   menuContainer.innerHTML = '';
 
+  // Ordena las categorías alfabéticamente por nombre
+  data.categorias.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
   data.categorias.forEach(categoria => {
     const categoriaTitulo = document.createElement('h4');
     categoriaTitulo.classList.add('col-12', 'mt-3');
@@ -151,6 +154,46 @@ function actualizarContador() {
   contadorPedidos.textContent = pedidosConfirmados.length;
 }
 
+// Recupera categorías guardadas desde localStorage
+function cargarCategoriasGuardadas() {
+  const guardadas = JSON.parse(localStorage.getItem('categorias'));
+  if (guardadas) data.categorias = guardadas;
+}
+
+// Referencias del formulario de categoría
+const formCategoria = document.getElementById('form-categoria');
+const nombreCategoriaInput = document.getElementById('nombreCategoria');
+const estadoAdmin = document.getElementById('estadoAdmin');
+
+// Maneja el envío del formulario para agregar una nueva categoría
+formCategoria.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const nombre = nombreCategoriaInput.value.trim();
+  if (!nombre) return;
+
+  // Verifica si la categoría ya existe (ignorando mayúsculas/minúsculas)
+  const existe = data.categorias.some(cat => cat.nombre.toLowerCase() === nombre.toLowerCase());
+  if (existe) {
+    estadoAdmin.textContent = `La categoría "${nombre}" ya existe.`;
+    return;
+  }
+
+  const nuevaCategoria = {
+    id: Date.now(),
+    nombre,
+    platillos: []
+  };
+
+  data.categorias.push(nuevaCategoria);
+  localStorage.setItem('categorias', JSON.stringify(data.categorias));
+  mostrarMenu();
+
+  estadoAdmin.textContent = `Categoría "${nombre}" agregada correctamente.`;
+  nombreCategoriaInput.value = '';
+});
+
 // Inicializa la vista
+cargarCategoriasGuardadas();
 mostrarMenu();
 cargarPedidosGuardados();
