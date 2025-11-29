@@ -53,7 +53,9 @@ function mostrarMenu() {
             <h5 class="card-title">${platillo.nombre}</h5>
             <p class="card-text text-muted">${platillo.descripcion}</p>
             <p class="fw-bold">$${platillo.precio}</p>
-            <button class="btn btn-primary w-100">Seleccionar</button>
+            <button class="btn btn-primary w-100">
+            <i class="bi bi-cart-plus"></i> Seleccionar
+            </button>
           </div>
         </div>
       `;
@@ -77,7 +79,10 @@ function agregarPedidoVisual(pedido) {
       <h5 class="card-title">${pedido.nombre} - $${pedido.precio}</h5>
       <p class="card-text"><strong>Comentario:</strong> ${pedido.comentario}</p>
       <p class="card-text text-muted">🕒 ${pedido.hora}</p>
-      <button class="btn btn-outline-danger btn-sm">Eliminar</button>
+      <button class="btn btn-outline-danger btn-sm">
+  <i class="bi bi-trash"></i>
+</button>
+
     </div>
   `;
   pedidoCard.querySelector('button').addEventListener('click', () => {
@@ -222,7 +227,10 @@ function mostrarListaCategorias() {
     item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
     item.innerHTML = `
       <span>${categoria.nombre}</span>
-      <button class="btn btn-sm btn-outline-secondary">Editar</button>
+      <button class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-pencil-square"></i>
+</button>
+
     `;
     item.querySelector('button').addEventListener('click', () => {
       idCategoriaEditar.value = categoria.id;
@@ -272,7 +280,10 @@ function mostrarListaPlatillos() {
       item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
       item.innerHTML = `
         <span><strong>${platillo.nombre}</strong> (${categoria.nombre}) - $${platillo.precio}</span>
-        <button class="btn btn-sm btn-outline-secondary">Editar</button>
+        <button class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-pencil-square"></i>
+</button>
+
       `;
       item.querySelector('button').addEventListener('click', () => {
         idCategoriaPlatilloEditar.value = categoria.id;

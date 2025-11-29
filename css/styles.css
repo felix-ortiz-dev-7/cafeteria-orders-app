@@ -19,3 +19,29 @@ header {
   background-color: #8b6f6f;
   border-color: #8b6f6f;
 }
+
+header {
+  background: linear-gradient(90deg, #6f4e37, #3e2723); /* tonos café */
+}
+
+.card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+#menu .card {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.5s forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
